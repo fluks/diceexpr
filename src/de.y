@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
+#include "str.h"
 void yyerror(char *);
 int yylex();
 static int roll(int, int, int, int);
@@ -19,9 +20,7 @@ static int nrolls;
 // Number of smallest and largest rolls to ignore.
 static int ignore_small, ignore_large;
 // Dice expression after dices are rolled.
-char rolled_expr[100];
-// Pointer to next character in rolled_expr.
-static char *re_char;
+str *rolled_expr;
 %}
 
 %token INTEGER
@@ -36,21 +35,20 @@ static char *re_char;
 %%
 
 program:
-    program { re_char = rolled_expr; } expr '\n'   {
-                                                     *++re_char = '\0';
-                                                     printf("%s = %d\n", rolled_expr, $3);
+    program { rolled_expr = str_new(NULL); } expr '\n'   {
+                                                     printf("%s = %d\n", rolled_expr->s, $3);
+                                                     str_free(rolled_expr);
                                                    }
     |
     ;
 
 expr:
     INTEGER                                        {
-                                                     int n = sprintf(re_char, "%d", $1);
-                                                     re_char += n;
+                                                     str_append_format(rolled_expr, "%d", $1);
                                                    }
-    | '-' { *re_char++ = '-'; } expr %prec UMINUS  { $$ = -$3; }
-    | expr '-' { *re_char++ = '-'; } expr          { $$ = $1 - $4; }
-    | expr '+' { *re_char++ = '+'; } expr          { $$ = $1 + $4; }
+    | '-' { str_append_char(rolled_expr, '-'); } expr %prec UMINUS  { $$ = -$3; }
+    | expr '-' { str_append_char(rolled_expr, '-'); } expr          { $$ = $1 - $4; }
+    | expr '+' { str_append_char(rolled_expr, '+'); } expr          { $$ = $1 + $4; }
     | maybe_int 'd' INTEGER ignore_list {
         $$ = roll(nrolls, $3, ignore_small, ignore_large);
         ignore_small = 0;
@@ -107,7 +105,7 @@ static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
 
     qsort(rolls, nrolls, sizeof(int), sort_ascending);
 
-    *re_char++ = '(';
+    str_append_char(rolled_expr, '('); 
 
     int sum = 0;
     int n = 0;
@@ -115,17 +113,15 @@ static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
         sum += rolls[i];
 
         if (n > 0 && n < nrolls - ignore_large) {
-            int nchars = sprintf(re_char, "+%d", rolls[i]);
-            re_char += nchars;
+            str_append_format(rolled_expr, "+%d", rolls[i]);
         }
         else {
-            int nchars = sprintf(re_char, "%d", rolls[i]);
-            re_char += nchars;
+            str_append_format(rolled_expr, "%d", rolls[i]);
         }
         n++;
     }
 
-    *re_char++ = ')';
+    str_append_char(rolled_expr, ')'); 
 
     return sum;
 }

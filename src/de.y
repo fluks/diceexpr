@@ -36,7 +36,7 @@ str *rolled_expr;
 
 program:
     program { rolled_expr = str_new(NULL); } expr '\n'   {
-                                                     printf("%s = %d\n", rolled_expr->s, $3);
+                                                     printf("%s = %d\n", rolled_expr->str, $3);
                                                      str_free(rolled_expr);
                                                    }
     |

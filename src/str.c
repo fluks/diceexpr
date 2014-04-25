@@ -17,7 +17,7 @@ str_new(const char *chars) {
     if (s == NULL)
         return NULL;
     s->len = 0;
-    s->s = NULL;
+    s->str = NULL;
 
     if (chars != NULL && strlen(chars) + 1 > DEFAULT_STR_SIZE) 
         s->size = strlen(chars) + 1;
@@ -27,10 +27,10 @@ str_new(const char *chars) {
         free(s);
         return NULL;
     }
-    s->s[0] = '\0';
+    s->str[0] = '\0';
 
     if (chars != NULL)
-        strcpy(s->s, chars);
+        strcpy(s->str, chars);
 
     return s;
 }
@@ -39,7 +39,7 @@ void
 str_free(str *s) {
     assert(s != NULL);
 
-    free(s->s);
+    free(s->str);
     free(s);
 }
 
@@ -48,7 +48,7 @@ str_erase(str *s) {
     assert(s != NULL);
 
     s->len = 0;
-    s->s[0] = '\0';
+    s->str[0] = '\0';
 }
 
 int
@@ -60,14 +60,14 @@ str_append_char(str *s, int c) {
         if (resize_str(s, s->size) != 0)
             return ENOMEM;
     }
-    s->s[s->len++] = c;
+    s->str[s->len++] = c;
 
     if (s->len + 1 >= s->size) {
         s->size *= SIZE_MULTIPLIER;
         if (resize_str(s, s->size) != 0)
             return ENOMEM;
     }
-    s->s[s->len] = '\0';
+    s->str[s->len] = '\0';
 
     return 0;
 }
@@ -84,7 +84,7 @@ str_append_chars(str *s, const char *chars) {
             return ENOMEM;
     }
 
-    strcpy(s->s + s->len, chars);
+    strcpy(s->str + s->len, chars);
     s->len += len;
 
     return 0;
@@ -120,7 +120,7 @@ str_copy_to_chars(str *s, char **chars) {
     *chars = malloc(s->len + 1);
     if (*chars == NULL)
         return ENOMEM;
-    strcpy(*chars, s->s);
+    strcpy(*chars, s->str);
 
     return 0;
 }
@@ -129,10 +129,10 @@ static int
 resize_str(str *s, size_t size) {
     assert(s != NULL);
 
-    char *temp = realloc(s->s, size);
+    char *temp = realloc(s->str, size);
     if (temp == NULL)
         return ENOMEM;
-    s->s = temp;
+    s->str = temp;
 
     return 0;
 }

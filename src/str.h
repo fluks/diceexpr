@@ -11,7 +11,8 @@
  * Will be null terminated at all times.
  */
 typedef struct {
-    char *s;
+    // Data.
+    char *str;
     // Length of current string without '\0'.
     size_t len;
     // Amount of memory allocated.

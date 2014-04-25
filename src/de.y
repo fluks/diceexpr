@@ -18,7 +18,10 @@ static int sort_ascending(const void *, const void *);
 static int nrolls;
 // Number of smallest and largest rolls to ignore.
 static int ignore_small, ignore_large;
-char e[100];
+// Dice expression after dices are rolled.
+char rolled_expr[100];
+// Pointer to next character in rolled_expr.
+static char *re_char;
 %}
 
 %token INTEGER
@@ -33,15 +36,21 @@ char e[100];
 %%
 
 program:
-    program expr '\n'                   { printf("%d\n", $2); }
+    program { re_char = rolled_expr; } expr '\n'   {
+                                                     *++re_char = '\0';
+                                                     printf("%s = %d\n", rolled_expr, $3);
+                                                   }
     |
     ;
 
 expr:
-    INTEGER                                 
-    | '-' expr %prec UMINUS             { $$ = -$2; }
-    | expr '-' expr                     { $$ = $1 - $3; }
-    | expr '+' expr                     { $$ = $1 + $3; }
+    INTEGER                                        {
+                                                     int n = sprintf(re_char, "%d", $1);
+                                                     re_char += n;
+                                                   }
+    | '-' { *re_char++ = '-'; } expr %prec UMINUS  { $$ = -$3; }
+    | expr '-' { *re_char++ = '-'; } expr          { $$ = $1 - $4; }
+    | expr '+' { *re_char++ = '+'; } expr          { $$ = $1 + $4; }
     | maybe_int 'd' INTEGER ignore_list {
         $$ = roll(nrolls, $3, ignore_small, ignore_large);
         ignore_small = 0;
@@ -50,8 +59,8 @@ expr:
     ;
 
 maybe_int:
-    INTEGER                             { nrolls = $1; }
-    |                                   { nrolls = 1; }
+    INTEGER                                        { nrolls = $1; }
+    |                                              { nrolls = 1; }
     ;
 
 ignore_list:
@@ -61,10 +70,10 @@ ignore_list:
     ;
 
 ignore:
-    '<'                                 { ignore_small++; }
-    | '>'                               { ignore_large++; }
-    | '<' INTEGER                       { ignore_small += $2; } 
-    | '>' INTEGER                       { ignore_large += $2; } 
+    '<'                                            { ignore_small++; }
+    | '>'                                          { ignore_large++; }
+    | '<' INTEGER                                  { ignore_small += $2; } 
+    | '>' INTEGER                                  { ignore_large += $2; } 
     ;
 
 %%
@@ -90,6 +99,7 @@ static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
     if (dice <= 0)
         yyerror("Number of sides in a dice must be > 0");
 
+
     int rolls[nrolls];
 
     for (int i = 0; i < nrolls; i++)
@@ -97,9 +107,25 @@ static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
 
     qsort(rolls, nrolls, sizeof(int), sort_ascending);
 
+    *re_char++ = '(';
+
     int sum = 0;
-    for (int i = ignore_small; i < nrolls - ignore_large; i++)
+    int n = 0;
+    for (int i = ignore_small; i < nrolls - ignore_large; i++) {
         sum += rolls[i];
+
+        if (n > 0 && n < nrolls - ignore_large) {
+            int nchars = sprintf(re_char, "+%d", rolls[i]);
+            re_char += nchars;
+        }
+        else {
+            int nchars = sprintf(re_char, "%d", rolls[i]);
+            re_char += nchars;
+        }
+        n++;
+    }
+
+    *re_char++ = ')';
 
     return sum;
 }

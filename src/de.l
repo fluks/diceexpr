@@ -1,3 +1,5 @@
+%option noyywrap
+
 %{
     #include "y.tab.h"
     void yyerror(char *);
@@ -22,7 +24,3 @@
 .               yyerror("Invalid character");
 
 %%
-
-int yywrap() {
-    return 1;
-}

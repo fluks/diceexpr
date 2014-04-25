@@ -14,7 +14,10 @@ void yyerror(char *);
 int yylex();
 static int roll(int, int, int, int);
 static int sort_ascending(const void *, const void *);
-static int nrolls, ignore_small, ignore_large;
+// Number of rolls for a dice.
+static int nrolls;
+// Number of smallest and largest rolls to ignore.
+static int ignore_small, ignore_large;
 char e[100];
 %}
 
@@ -71,6 +74,14 @@ int main() {
     yyparse();
 }
 
+/** Roll a dice.
+ * Arguments must satisfy: ignore_small + ignore_large < nrolls.
+ * @param nrolls Number of rolls for a dice. Must be > 0.
+ * @param dice Number of sides in a dice. Must be > 0.
+ * @param ignore_small Ignore this many smallest rolls.
+ * @param ignore_large Ignore this many largest rolls.
+ * @return Sum of rolls.
+ */
 static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
     if (ignore_small + ignore_large >= nrolls)
         yyerror("Total number of ignores must be less than number of rolls");

@@ -85,6 +85,10 @@ int main() {
 static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
     if (ignore_small + ignore_large >= nrolls)
         yyerror("Total number of ignores must be less than number of rolls");
+    if (nrolls <= 0)
+        yyerror("Number of rolls must be > 0");
+    if (dice <= 0)
+        yyerror("Number of sides in a dice must be > 0");
 
     int rolls[nrolls];
 

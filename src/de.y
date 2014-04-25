@@ -35,30 +35,28 @@ str *rolled_expr;
 %%
 
 program:
-    program { rolled_expr = str_new(NULL); } expr '\n'   {
-                                                     printf("%s = %d\n", rolled_expr->str, $3);
-                                                     str_free(rolled_expr);
-                                                   }
+    program { rolled_expr = str_new(NULL); } expr '\n'              {
+                                                                      printf("%s = %d\n", rolled_expr->str, $3);
+                                                                      str_free(rolled_expr);
+                                                                    }
     |
     ;
 
 expr:
-    INTEGER                                        {
-                                                     str_append_format(rolled_expr, "%d", $1);
-                                                   }
+    INTEGER                                                         { str_append_format(rolled_expr, "%d", $1); }
     | '-' { str_append_char(rolled_expr, '-'); } expr %prec UMINUS  { $$ = -$3; }
     | expr '-' { str_append_char(rolled_expr, '-'); } expr          { $$ = $1 - $4; }
     | expr '+' { str_append_char(rolled_expr, '+'); } expr          { $$ = $1 + $4; }
-    | maybe_int 'd' INTEGER ignore_list {
-        $$ = roll(nrolls, $3, ignore_small, ignore_large);
-        ignore_small = 0;
-        ignore_large = 0;
-    }
+    | maybe_int 'd' INTEGER ignore_list                             {
+                                                                    $$ = roll(nrolls, $3, ignore_small, ignore_large);
+                                                                    ignore_small = 0;
+                                                                    ignore_large = 0;
+                                                                    }
     ;
 
 maybe_int:
-    INTEGER                                        { nrolls = $1; }
-    |                                              { nrolls = 1; }
+    INTEGER                                                         { nrolls = $1; }
+    |                                                               { nrolls = 1; }
     ;
 
 ignore_list:
@@ -68,10 +66,10 @@ ignore_list:
     ;
 
 ignore:
-    '<'                                            { ignore_small++; }
-    | '>'                                          { ignore_large++; }
-    | '<' INTEGER                                  { ignore_small += $2; } 
-    | '>' INTEGER                                  { ignore_large += $2; } 
+    '<'                                                             { ignore_small++; }
+    | '>'                                                           { ignore_large++; }
+    | '<' INTEGER                                                   { ignore_small += $2; } 
+    | '>' INTEGER                                                   { ignore_large += $2; } 
     ;
 
 %%
@@ -90,12 +88,12 @@ int main() {
  * @return Sum of rolls.
  */
 static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
-    if (ignore_small + ignore_large >= nrolls)
-        yyerror("Total number of ignores must be less than number of rolls");
     if (nrolls <= 0)
         yyerror("Number of rolls must be > 0");
     if (dice <= 0)
         yyerror("Number of sides in a dice must be > 0");
+    if (ignore_small + ignore_large >= nrolls)
+        yyerror("Total number of ignores must be less than number of rolls");
 
 
     int rolls[nrolls];

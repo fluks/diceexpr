@@ -1,20 +1,21 @@
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -O2 -g
-CFLAGS += -Wno-unused-function
 # fileno()
-CFLAGS += -D_XOPEN_SOURCE
-build_dir = ../build
+CFLAGS = -D_XOPEN_SOURCE
+CFLAGS += -Wall -Wextra -pedantic -std=c11 -O2 -g
+CFLAGS += -Wno-unused-function
 bin_dir = ../bin
 bin = de
 
-.PHONY: all
+.PHONY: all clean
 
-all: $(shell mkdir -p $(build_dir))
-all: $(build_dir)/y.tab.c $(build_dir)/lex.yy.c
+all: y.tab.c lex.yy.c
 	mkdir -p $(bin_dir)
-	$(CC) $(CFLAGS) -o $(bin_dir)/$(bin) $<
+	$(CC) $(CFLAGS) $^ -o $(bin_dir)/$(bin)
 
-$(build_dir)/y.tab.c: de.y
-	yacc -d $< -o $@
+y.tab.c: de.y
+	yacc -d $<
 
-$(build_dir)/lex.yy.c: de.l
-	lex $< -o $@
+lex.yy.c: de.l
+	lex $<
+
+clean:
+	-rm y.tab.* lex.yy.c

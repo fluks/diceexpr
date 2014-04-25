@@ -1,2 +1,4 @@
 build/
 bin/
+src/lex.yy.c
+src/y.tab.*

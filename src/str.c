@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 #define DEFAULT_STR_SIZE 10
 #define SIZE_MULTIPLIER 2
 
@@ -14,6 +17,7 @@ str_new(const char *chars) {
     if (s == NULL)
         return NULL;
     s->len = 0;
+    s->s = NULL;
 
     if (chars != NULL && strlen(chars) + 1 > DEFAULT_STR_SIZE) 
         s->size = strlen(chars) + 1;
@@ -43,7 +47,8 @@ void
 str_erase(str *s) {
     assert(s != NULL);
 
-    memset(s->s, '\0', s->len);
+    s->len = 0;
+    s->s[0] = '\0';
 }
 
 int
@@ -73,15 +78,38 @@ str_append_chars(str *s, const char *chars) {
     assert(chars != NULL);
     
     size_t len = strlen(chars);
-    while (s->size >= s->len + len + 1) {
+    while (s->size < s->len + len + 1) {
         s->size *= SIZE_MULTIPLIER;
         if (resize_str(s, s->size) != 0)
             return ENOMEM;
     }
 
     strcpy(s->s + s->len, chars);
+    s->len += len;
 
     return 0;
+}
+
+int
+str_append_format(str *s, const char *format, ...) {
+    assert(s != NULL);
+    assert(format != NULL);
+
+    int retval = 0;
+    char *temp = NULL;
+    va_list ap;
+    va_start(ap, format);
+    if (vasprintf(&temp, format, ap) == -1) {
+        retval = -1;
+        goto end;
+    }
+    str_append_chars(s, temp);
+    free(temp);
+
+    end:
+        va_end(ap);
+
+    return retval;
 }
 
 int
@@ -89,7 +117,7 @@ str_copy_to_chars(str *s, char **chars) {
     assert(s != NULL);
     assert(*chars == NULL);
 
-    *chars = malloc(str->len + 1);
+    *chars = malloc(s->len + 1);
     if (*chars == NULL)
         return ENOMEM;
     strcpy(*chars, s->s);

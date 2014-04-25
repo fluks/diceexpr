@@ -10,13 +10,13 @@
 /** String struct.
  * Will be null terminated at all times.
  */
-typedef struct str {
+typedef struct {
     char *s;
     // Length of current string without '\0'.
     size_t len;
     // Amount of memory allocated.
     size_t size;
-};
+} str;
 
 /** Create new str on the heap.
  * @param chars An initial string to copy to str, can be NULL.
@@ -32,7 +32,7 @@ str_new(const char *chars);
 void
 str_free(str *s);
 
-/** Zero out all data.
+/** Set length to zero.
  * @param s Can't be NULL.
  * @return void
  */
@@ -55,8 +55,18 @@ str_append_char(str *s, int c);
 int
 str_append_chars(str *s, const char *chars);
 
+/** Append a string using format string.
+ * @param s Can't be NULL.
+ * @param format Format string, can't be NULL.
+ * @param ... Variables for format string.
+ * @return Zero on success, -1 on failure.
+ */
+int
+str_append_format(str *s, const char *format, ...);
+
 /** Copy str's data to a string.
- * chars will s->len + 1 of size.
+ * Memory for chars is allocated, so free it after use. chars will be
+ * s->len + 1 of size.
  * @param s Can't be NULL.
  * @param chars String to copy to, must point to NULL.
  * @return Zero on success, ENOMEM on error.

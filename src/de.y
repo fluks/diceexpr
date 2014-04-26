@@ -64,8 +64,7 @@ program:
 
 expr:
     INVALID_CHARACTER       {
-                              parse_error = DE_INVALID_CHARACTER;
-                              YYERROR;
+                              PARSE_ERROR(DE_INVALID_CHARACTER);
                             }
     | INTEGER               {
                               if (str_append_format(rolled_expr, "%d", $1) != 0)

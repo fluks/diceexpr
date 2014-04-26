@@ -134,7 +134,11 @@ de_parse(const char *expr, int *value, char **rolled_expression) {
     end:
         delete_buffer();
         str_free(rolled_expr);
+        // Initialize all file globals for a next call.
         rolled_expr = NULL;
+        nrolls = 0;
+        ignore_small = 0;
+        ignore_large = 0;
         parse_error = 0;
         result = 0;
 

@@ -10,20 +10,41 @@
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
+#include <assert.h>
 #include "str.h"
-void yyerror(char *);
+#include "diceexpr.h"
+#define UNUSED_PARAM(x) ((void) (x))
 int yylex();
-static int roll(int, int, int, int);
-static int sort_ascending(const void *, const void *);
+void yyerror(const char *s);
+void set_scan_string(const char *expr);
+void delete_buffer();
+static enum parse_error roll(int nrolls,
+                             int dice,
+                             int ignore_small,
+                             int ignore_large,
+                             int *sum);
+static int sort_ascending(const void *a, const void *b);
 // Number of rolls for a dice.
 static int nrolls;
 // Number of smallest and largest rolls to ignore.
 static int ignore_small, ignore_large;
 // Dice expression after dices are rolled.
-str *rolled_expr;
+static str *rolled_expr;
+// Evaluated result of a dice expression.
+static int result;
+// Parser error.
+static enum parse_error parse_error;
+/** Set parse_error type and abort yyparse().
+ * @param type Parse error of type enum parse_error.
+ */
+#define PARSE_ERROR(type) do { \
+    parse_error = type; \
+    YYERROR; \
+} while (0)
 %}
 
 %token INTEGER
+%token INVALID_CHARACTER
 
 %left '+' '-'
 %nonassoc 'd'
@@ -35,28 +56,36 @@ str *rolled_expr;
 %%
 
 program:
-    program { rolled_expr = str_new(NULL); } expr '\n'              {
-                                                                      printf("%s = %d\n", rolled_expr->str, $3);
-                                                                      str_free(rolled_expr);
-                                                                    }
-    |
+    expr    { result = $1; }
     ;
 
 expr:
-    INTEGER                                                         { str_append_format(rolled_expr, "%d", $1); }
-    | '-' { str_append_char(rolled_expr, '-'); } expr %prec UMINUS  { $$ = -$3; }
-    | expr '-' { str_append_char(rolled_expr, '-'); } expr          { $$ = $1 - $4; }
-    | expr '+' { str_append_char(rolled_expr, '+'); } expr          { $$ = $1 + $4; }
-    | maybe_int 'd' INTEGER ignore_list                             {
-                                                                    $$ = roll(nrolls, $3, ignore_small, ignore_large);
-                                                                    ignore_small = 0;
-                                                                    ignore_large = 0;
-                                                                    }
+    INVALID_CHARACTER       {
+                              parse_error = DE_INVALID_CHARACTER;
+                              YYERROR;
+                            }
+    | INTEGER               {
+                              if (str_append_format(rolled_expr, "%d", $1) != 0)
+                                 PARSE_ERROR(DE_MEMORY);
+                            }
+    | '-' { if (str_append_char(rolled_expr, '-')) PARSE_ERROR(DE_MEMORY); } expr %prec UMINUS  { $$ = -$3; }
+    | expr '-' { if (str_append_char(rolled_expr, '-')) PARSE_ERROR(DE_MEMORY);  } expr         { $$ = $1 - $4; }
+    | expr '+' { if (str_append_char(rolled_expr, '+')) PARSE_ERROR(DE_MEMORY); }  expr         { $$ = $1 + $4; }
+    | maybe_int 'd' INTEGER ignore_list     {
+                                                int sum;
+                                                enum parse_error e =
+                                                    roll(nrolls, $3, ignore_small, ignore_large, &sum);
+                                                if (e != 0)
+                                                    PARSE_ERROR(e);
+                                                $$ = sum;
+                                                ignore_small = 0;
+                                                ignore_large = 0;
+                                            }
     ;
 
 maybe_int:
-    INTEGER                                                         { nrolls = $1; }
-    |                                                               { nrolls = 1; }
+    INTEGER     { nrolls = $1; }
+    |           { nrolls = 1; }
     ;
 
 ignore_list:
@@ -66,17 +95,46 @@ ignore_list:
     ;
 
 ignore:
-    '<'                                                             { ignore_small++; }
-    | '>'                                                           { ignore_large++; }
-    | '<' INTEGER                                                   { ignore_small += $2; } 
-    | '>' INTEGER                                                   { ignore_large += $2; } 
+    '<'                { ignore_small++; }
+    | '>'              { ignore_large++; }
+    | '<' INTEGER      { ignore_small += $2; } 
+    | '>' INTEGER      { ignore_large += $2; } 
     ;
 
 %%
 
-int main() {
-    srand(time(NULL));
-    yyparse();
+enum parse_error
+de_parse(const char *expr, int *value, char **rolled_expression) {
+    assert(expr != NULL);
+    assert(*rolled_expression == NULL);
+
+    if ((rolled_expr = str_new(NULL)) == NULL)
+        return DE_MEMORY;
+
+    enum parse_error retval = 0;
+
+    set_scan_string(expr);
+    int parse_retval = yyparse();
+    if (parse_retval == 1) {
+        retval = DE_SYNTAX_ERROR;
+        goto end;
+    }
+    else if (parse_retval == 2) {
+        retval = DE_MEMORY;
+        goto end;
+    }
+    *value = result;
+    if (str_copy_to_chars(rolled_expr, rolled_expression) != 0)
+        retval = DE_MEMORY;
+
+    end:
+        delete_buffer();
+        str_free(rolled_expr);
+        rolled_expr = NULL;
+        parse_error = 0;
+        result = 0;
+
+    return retval;
 }
 
 /** Roll a dice.
@@ -85,16 +143,17 @@ int main() {
  * @param dice Number of sides in a dice. Must be > 0.
  * @param ignore_small Ignore this many smallest rolls.
  * @param ignore_large Ignore this many largest rolls.
- * @return Sum of rolls.
+ * @param dice_sum Sum of dices rolled.
+ * @return Zero on success, enum parse_error otherwise.
  */
-static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
+static enum parse_error
+roll(int nrolls, int dice, int ignore_small, int ignore_large, int *dice_sum) {
     if (nrolls <= 0)
-        yyerror("Number of rolls must be > 0");
+        return DE_NROLLS;
     if (dice <= 0)
-        yyerror("Number of sides in a dice must be > 0");
+        return DE_DICE;
     if (ignore_small + ignore_large >= nrolls)
-        yyerror("Total number of ignores must be less than number of rolls");
-
+        return DE_IGNORE;
 
     int rolls[nrolls];
 
@@ -103,7 +162,8 @@ static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
 
     qsort(rolls, nrolls, sizeof(int), sort_ascending);
 
-    str_append_char(rolled_expr, '('); 
+    if (str_append_char(rolled_expr, '(') != 0)
+        return DE_MEMORY;
 
     int sum = 0;
     int n = 0;
@@ -111,20 +171,26 @@ static int roll(int nrolls, int dice, int ignore_small, int ignore_large) {
         sum += rolls[i];
 
         if (n > 0 && n < nrolls - ignore_large) {
-            str_append_format(rolled_expr, "+%d", rolls[i]);
+            if (str_append_format(rolled_expr, "+%d", rolls[i]) != 0)
+                return DE_MEMORY;
         }
         else {
-            str_append_format(rolled_expr, "%d", rolls[i]);
+            if (str_append_format(rolled_expr, "%d", rolls[i]) != 0)
+                return DE_MEMORY;
         }
         n++;
     }
 
-    str_append_char(rolled_expr, ')'); 
+    if (str_append_char(rolled_expr, ')') != 0)
+        return DE_MEMORY;
 
-    return sum;
+    *dice_sum = sum;
+
+    return 0;
 }
 
-static int sort_ascending(const void *a, const void *b) {
+static int
+sort_ascending(const void *a, const void *b) {
     const int *x = a;
     const int *y = b;
 
@@ -133,6 +199,7 @@ static int sort_ascending(const void *a, const void *b) {
     else          return 1;
 }
 
-void yyerror(char *s) {
-    fprintf(stderr, "%s\n", s);
+void
+yyerror(const char *s) {
+    UNUSED_PARAM(s);
 }

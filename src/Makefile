@@ -11,7 +11,7 @@ bin = de
 
 all: str.o y.tab.c lex.yy.c
 	mkdir -p $(bin_dir)
-	$(CC) $(CFLAGS) $^ -o $(bin_dir)/$(bin)
+	$(CC) $(CFLAGS) $^ -shared -o $(bin_dir)/libdiceexpr.so
 
 str.o: str.c
 	$(CC) $(CFLAGS) $< -c -o $@
@@ -23,4 +23,4 @@ lex.yy.c: de.l
 	lex $<
 
 clean:
-	-rm y.tab.* lex.yy.c
+	-rm y.tab.* lex.yy.c *.o

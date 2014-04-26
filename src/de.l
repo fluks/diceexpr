@@ -1,8 +1,8 @@
 %option noyywrap
 
 %{
-    #include "y.tab.h"
-    void yyerror(char *);
+#include <assert.h>
+#include "y.tab.h"
 %}
 
 %%
@@ -17,10 +17,22 @@
                 return INTEGER;
             }
 
-[-+d<>\n]       return *yytext;
+[-+d<>]         return *yytext;
 
-[ \t]           ;
+[ \t\n]         ;
 
-.               yyerror("Invalid character");
+.               { return INVALID_CHARACTER; }
 
 %%
+
+void
+set_scan_string(const char *expr) {
+    assert(expr != NULL);
+
+    yy_scan_string(expr); 
+}
+
+void
+delete_buffer() {
+    yy_delete_buffer(YY_CURRENT_BUFFER);
+}

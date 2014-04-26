@@ -1,8 +1,7 @@
 /** Grammar for dice expression.
- * S       ::= expr
- * expr    ::= integer | '-' expr | expr '-' expr | expr '+' expr | [integer] 'd' integer ignore
- * ignore  ::= ('<' | '>' [integer])*
- * integer ::= [0-9] | [1-9][0-9]+
+ * s      ::= expr
+ * expr   ::= INTEGER | '-' expr | expr '-' expr | expr '+' expr | [INTEGER] 'd' INTEGER ignore
+ * ignore ::= ('<' | '>' [INTEGER])*
  */
 
 %{
@@ -17,7 +16,7 @@
 #define UNUSED_PARAM(x) ((void) (x))
 int yylex();
 void yyerror(const char *s);
-// Set expr as input for lexer. Can't be NULL.
+// Set dice expression as input for lexer. Can't be NULL.
 void set_scan_string(const char *expr);
 // Free lexer's buffer.
 void delete_buffer();
@@ -93,6 +92,7 @@ maybe_int:
 ignore_list:
     ignore
     | ignore_list ignore
+    // Should now be redundant.
     | %prec IGNORE_EMPTY
     ;
 
@@ -134,7 +134,7 @@ de_parse(const char *expr, int *value, char **rolled_expression) {
     end:
         delete_buffer();
         str_free(rolled_expr);
-        // Initialize all file globals for a next call.
+        // Initialize all file globals for the next call.
         rolled_expr = NULL;
         nrolls = 0;
         ignore_small = 0;

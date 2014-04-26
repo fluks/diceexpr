@@ -67,7 +67,7 @@ str_append_format(str *s, const char *format, ...);
 
 /** Copy str's data to a string.
  * Memory for chars is allocated, so free it after use. chars will be
- * s->len + 1 of size.
+ * s->len + 1 of size. chars is nul terminated.
  * @param s Can't be NULL.
  * @param chars String to copy to, must point to NULL.
  * @return Zero on success, ENOMEM on error.

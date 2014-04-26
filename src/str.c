@@ -8,6 +8,11 @@
 #define DEFAULT_STR_SIZE 10
 #define SIZE_MULTIPLIER 2
 
+/* Resize memory allocated for data.
+ * @param s Can't be NULL.
+ * @param size New size for data.
+ * @return Zero on success, ENOMEM on error.
+ */
 static int
 resize_str(str *s, size_t size);
 
@@ -19,6 +24,7 @@ str_new(const char *chars) {
     s->len = 0;
     s->str = NULL;
 
+    // New size will always be at least DEFAULT_STR_SIZE.
     if (chars != NULL && strlen(chars) + 1 > DEFAULT_STR_SIZE) 
         s->size = strlen(chars) + 1;
     else
@@ -40,6 +46,7 @@ str_free(str *s) {
     assert(s != NULL);
 
     free(s->str);
+    s->str = NULL;
     free(s);
 }
 

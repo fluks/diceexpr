@@ -13,10 +13,13 @@
 #include <assert.h>
 #include "str.h"
 #include "diceexpr.h"
+// Call this on a parameter if compiler warns about unused parameter.
 #define UNUSED_PARAM(x) ((void) (x))
 int yylex();
 void yyerror(const char *s);
+// Set expr as input for lexer. Can't be NULL.
 void set_scan_string(const char *expr);
+// Free lexer's buffer.
 void delete_buffer();
 static enum parse_error roll(int nrolls,
                              int dice,
@@ -34,7 +37,7 @@ static str *rolled_expr;
 static int result;
 // Parser error.
 static enum parse_error parse_error;
-/** Set parse_error type and abort yyparse().
+/* Set parse_error type and stop yyparse().
  * @param type Parse error of type enum parse_error.
  */
 #define PARSE_ERROR(type) do { \
@@ -137,7 +140,7 @@ de_parse(const char *expr, int *value, char **rolled_expression) {
     return retval;
 }
 
-/** Roll a dice.
+/* Roll a dice.
  * Arguments must satisfy: ignore_small + ignore_large < nrolls.
  * @param nrolls Number of rolls for a dice. Must be > 0.
  * @param dice Number of sides in a dice. Must be > 0.
@@ -199,6 +202,7 @@ sort_ascending(const void *a, const void *b) {
     else          return 1;
 }
 
+// Empty, because on syntax error we don't want to print anything.
 void
 yyerror(const char *s) {
     UNUSED_PARAM(s);

@@ -8,12 +8,13 @@ enum parse_error {
 	DE_INVALID_CHARACTER,
 	DE_SYNTAX_ERROR,
     DE_NROLLS,              // Number of rolls is not positive.
-    DE_DICE,                // Number of sides in a dice is not positive.
+    DE_DICE,                // Number of sides for a dice is not positive.
     DE_IGNORE               // Number of ignores for a dice is too large.
 };
 
 /** Parse dice expression.
- * Caller must call srand() once before using this function.
+ * Caller must call srand() once before using this function. Memory for
+ * rolled_expression is allocated, caller should free it.
  * @param expr Dice expression, can't be NULL.
  * @param value Used to store evaluated value.
  * @param rolled_expr Used to store dice expression after rolling dices.

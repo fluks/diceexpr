@@ -117,8 +117,10 @@ de_parse(const char *expr, int *value, char **rolled_expression) {
 
     set_scan_string(expr);
     int parse_retval = yyparse();
+    // Any other error than bison's memory error.
     if (parse_retval == 1) {
-        retval = DE_SYNTAX_ERROR;
+        // If parse_error is set, then it's some other error than syntax error.
+        retval = parse_error == 0 ? DE_SYNTAX_ERROR : parse_error;
         goto end;
     }
     else if (parse_retval == 2) {

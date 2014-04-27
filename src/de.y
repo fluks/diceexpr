@@ -10,6 +10,7 @@
 #include <time.h>
 #include <limits.h>
 #include <assert.h>
+#include <inttypes.h>
 #include "str.h"
 #include "diceexpr.h"
 // Call this on a parameter if compiler warns about unused parameter.
@@ -20,20 +21,20 @@ void yyerror(const char *s);
 void set_scan_string(const char *expr);
 // Free lexer's buffer.
 void delete_buffer();
-static enum parse_error roll(int nrolls,
-                             int dice,
-                             int ignore_small,
-                             int ignore_large,
-                             int *sum);
+static enum parse_error roll(int_least64_t nrolls,
+                             int_least64_t dice,
+                             int_least64_t ignore_small,
+                             int_least64_t ignore_large,
+                             int_least64_t *sum);
 static int sort_ascending(const void *a, const void *b);
 // Number of rolls for a dice.
-static int nrolls;
+static int_least64_t nrolls;
 // Number of smallest and largest rolls to ignore.
-static int ignore_small, ignore_large;
+static int_least64_t ignore_small, ignore_large;
 // Dice expression after dices are rolled.
 static str *rolled_expr;
 // Evaluated result of a dice expression.
-static int result;
+static int_least64_t result;
 // Parser error.
 static enum parse_error parse_error;
 /* Set parse_error type and stop yyparse().
@@ -45,8 +46,11 @@ static enum parse_error parse_error;
 } while (0)
 %}
 
+%code requires { #define YYSTYPE int_least64_t }
+
 %token INTEGER
 %token INVALID_CHARACTER
+%token OVERFLOW
 
 %left '+' '-'
 %nonassoc 'd'
@@ -62,18 +66,17 @@ program:
     ;
 
 expr:
-    INVALID_CHARACTER       {
-                              PARSE_ERROR(DE_INVALID_CHARACTER);
-                            }
+    INVALID_CHARACTER       { PARSE_ERROR(DE_INVALID_CHARACTER); }
+    | OVERFLOW              { PARSE_ERROR(DE_OVERFLOW); }
     | INTEGER               {
-                              if (str_append_format(rolled_expr, "%d", $1) != 0)
+                              if (str_append_format(rolled_expr, "%" PRIdLEAST64, $1) != 0)
                                  PARSE_ERROR(DE_MEMORY);
                             }
     | '-' { if (str_append_char(rolled_expr, '-')) PARSE_ERROR(DE_MEMORY); } expr %prec UMINUS  { $$ = -$3; }
     | expr '-' { if (str_append_char(rolled_expr, '-')) PARSE_ERROR(DE_MEMORY);  } expr         { $$ = $1 - $4; }
     | expr '+' { if (str_append_char(rolled_expr, '+')) PARSE_ERROR(DE_MEMORY); }  expr         { $$ = $1 + $4; }
     | maybe_int 'd' INTEGER ignore_list     {
-                                                int sum;
+                                                int_least64_t sum;
                                                 enum parse_error e =
                                                     roll(nrolls, $3, ignore_small, ignore_large, &sum);
                                                 if (e != 0)
@@ -106,7 +109,7 @@ ignore:
 %%
 
 enum parse_error
-de_parse(const char *expr, int *value, char **rolled_expression) {
+de_parse(const char *expr, int_least64_t *value, char **rolled_expression) {
     assert(expr != NULL);
     assert(*rolled_expression == NULL);
 
@@ -155,7 +158,11 @@ de_parse(const char *expr, int *value, char **rolled_expression) {
  * @return Zero on success, enum parse_error otherwise.
  */
 static enum parse_error
-roll(int nrolls, int dice, int ignore_small, int ignore_large, int *dice_sum) {
+roll(int_least64_t nrolls,
+     int_least64_t dice,
+     int_least64_t ignore_small,
+     int_least64_t ignore_large,
+     int_least64_t *dice_sum) {
     if (nrolls <= 0)
         return DE_NROLLS;
     if (dice <= 0)
@@ -163,27 +170,27 @@ roll(int nrolls, int dice, int ignore_small, int ignore_large, int *dice_sum) {
     if (ignore_small + ignore_large >= nrolls)
         return DE_IGNORE;
 
-    int rolls[nrolls];
+    int_least64_t rolls[nrolls];
 
-    for (int i = 0; i < nrolls; i++)
-        rolls[i] = (int) (rand() / (double) RAND_MAX * dice + 1);
+    for (int_least64_t i = 0; i < nrolls; i++)
+        rolls[i] = (int_least64_t) (rand() / (double) RAND_MAX * dice + 1);
 
-    qsort(rolls, nrolls, sizeof(int), sort_ascending);
+    qsort(rolls, nrolls, sizeof(int_least64_t), sort_ascending);
 
     if (str_append_char(rolled_expr, '(') != 0)
         return DE_MEMORY;
 
-    int sum = 0;
-    int n = 0;
-    for (int i = ignore_small; i < nrolls - ignore_large; i++) {
+    int_least64_t sum = 0;
+    int_least64_t n = 0;
+    for (int_least64_t i = ignore_small; i < nrolls - ignore_large; i++) {
         sum += rolls[i];
 
         if (n > 0 && n < nrolls - ignore_large) {
-            if (str_append_format(rolled_expr, "+%d", rolls[i]) != 0)
+            if (str_append_format(rolled_expr, "+%" PRIdLEAST64, rolls[i]) != 0)
                 return DE_MEMORY;
         }
         else {
-            if (str_append_format(rolled_expr, "%d", rolls[i]) != 0)
+            if (str_append_format(rolled_expr, "%" PRIdLEAST64, rolls[i]) != 0)
                 return DE_MEMORY;
         }
         n++;
@@ -199,8 +206,8 @@ roll(int nrolls, int dice, int ignore_small, int ignore_large, int *dice_sum) {
 
 static int
 sort_ascending(const void *a, const void *b) {
-    const int *x = a;
-    const int *y = b;
+    const int_least64_t *x = a;
+    const int_least64_t *y = b;
 
     if (*x < *y)  return -1;
     if (*x == *y) return 0;

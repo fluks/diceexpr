@@ -2,19 +2,20 @@
 
 %{
 #include <assert.h>
+#include <inttypes.h>
+#include <errno.h>
 #include "y.tab.h"
+int read_int();
 %}
 
 %%
 
 [0-9]       {
-                yylval = atoi(yytext);
-                return INTEGER;
+                return read_int() != 0 ? OVERFLOW : INTEGER; 
             }
 
 [1-9][0-9]+ {
-                yylval = atoi(yytext);
-                return INTEGER;
+                return read_int() != 0 ? OVERFLOW : INTEGER; 
             }
 
 [-+d<>]         return *yytext;
@@ -35,4 +36,11 @@ set_scan_string(const char *expr) {
 void
 delete_buffer() {
     yy_delete_buffer(YY_CURRENT_BUFFER);
+}
+
+int
+read_int() {
+    errno = 0;
+    yylval = strtoimax(yytext, NULL, 10);
+    return errno == ERANGE ? 1 : 0;
 }

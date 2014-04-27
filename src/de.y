@@ -181,19 +181,16 @@ roll(int_least64_t nrolls,
         return DE_MEMORY;
 
     int_least64_t sum = 0;
-    int_least64_t n = 0;
-    for (int_least64_t i = ignore_small; i < nrolls - ignore_large; i++) {
+    int_least64_t nth_included_roll = 0;
+    for (int_least64_t i = ignore_small; i < nrolls - ignore_large;
+         i++, nth_included_roll++) {
         sum += rolls[i];
 
-        if (n > 0 && n < nrolls - ignore_large) {
-            if (str_append_format(rolled_expr, "+%" PRIdLEAST64, rolls[i]) != 0)
-                return DE_MEMORY;
-        }
-        else {
-            if (str_append_format(rolled_expr, "%" PRIdLEAST64, rolls[i]) != 0)
-                return DE_MEMORY;
-        }
-        n++;
+        const char *format_with_plus_or_not =
+            nth_included_roll > 0 && nth_included_roll < nrolls - ignore_large ?
+                "+%" PRIdLEAST64 : "%" PRIdLEAST64;
+        if (str_append_format(rolled_expr, format_with_plus_or_not, rolls[i]) != 0)
+            return DE_MEMORY;
     }
 
     if (str_append_char(rolled_expr, ')') != 0)

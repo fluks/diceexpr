@@ -20,6 +20,8 @@ int read_int();
 
 [-+d<>]         return *yytext;
 
+D               return 'd';
+
 [ \t\n]         ;
 
 .               { return INVALID_CHARACTER; }

@@ -1,0 +1,6 @@
+To get rid of file globals, use reentrant versions of flex and bison. This
+allows passing parameters to yyparse().
+
+Add type for ignores. Then embed action for ignore_list in expr's dice rule to
+push a struct to the value stack and change that accordingly in ignore rule
+and pass it to roll().

@@ -27,8 +27,6 @@ static enum parse_error roll(int_least64_t nrolls,
                              int_least64_t ignore_large,
                              int_least64_t *sum);
 static int sort_ascending(const void *a, const void *b);
-// Number of rolls for a dice.
-static int_least64_t nrolls;
 // Number of smallest and largest rolls to ignore.
 static int_least64_t ignore_small, ignore_large;
 // Dice expression after dices are rolled.
@@ -78,7 +76,7 @@ expr:
     | maybe_int 'd' INTEGER ignore_list     {
                                                 int_least64_t sum;
                                                 enum parse_error e =
-                                                    roll(nrolls, $3, ignore_small, ignore_large, &sum);
+                                                    roll($1, $3, ignore_small, ignore_large, &sum);
                                                 if (e != 0)
                                                     PARSE_ERROR(e);
                                                 $$ = sum;
@@ -88,8 +86,8 @@ expr:
     ;
 
 maybe_int:
-    INTEGER     { nrolls = $1; }
-    |           { nrolls = 1; }
+    INTEGER     { $$ = $1; }
+    |           { $$ = 1; }
     ;
 
 ignore_list:
@@ -139,7 +137,6 @@ de_parse(const char *expr, int_least64_t *value, char **rolled_expression) {
         str_free(rolled_expr);
         // Initialize all file globals for the next call.
         rolled_expr = NULL;
-        nrolls = 0;
         ignore_small = 0;
         ignore_large = 0;
         parse_error = 0;

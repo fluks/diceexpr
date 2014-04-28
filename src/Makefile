@@ -2,18 +2,24 @@
 CFLAGS = -D_XOPEN_SOURCE
 # vasprintf()
 CFLAGS += -D_GNU_SOURCE
-CFLAGS += -Wall -Wextra -pedantic -std=c11 -O2 -g
+CFLAGS += -Wall -Wextra -pedantic -std=c11 -g
 CFLAGS += -Wno-unused-function
-bin_dir = ../bin
-bin = de
+lib_dir = ../lib/
+lib = libdiceexpr.so
 
-.PHONY: all clean
+.PHONY: default all clean debug
+
+default: CFLAGS += -O2 -DNDEBUG
+default: all
 
 all: str.o y.tab.c lex.yy.c
-	mkdir -p $(bin_dir)
-	$(CC) $(CFLAGS) $^ -shared -o $(bin_dir)/libdiceexpr.so
+	mkdir -p $(lib_dir)
+	$(CC) $(CFLAGS) $^ -shared -o $(addprefix ${lib_dir}, ${lib})
 
-str.o: str.c
+debug: CFLAGS += -O0
+debug: all
+
+str.o: str.c str.h
 	$(CC) $(CFLAGS) $< -c -o $@
 
 y.tab.c: de.y str.o

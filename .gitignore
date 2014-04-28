@@ -3,3 +3,4 @@ bin/
 src/lex.yy.c
 src/y.tab.*
 src/*.o
+lib/

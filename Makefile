@@ -1,6 +1,9 @@
-.PHONY: all clean
+.PHONY: default clean debug
 
-all:
+default:
+	$(MAKE) -C src/ $@
+
+debug:
 	$(MAKE) -C src/ $@
 
 clean:

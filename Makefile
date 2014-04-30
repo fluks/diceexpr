@@ -1,4 +1,4 @@
-.PHONY: default clean debug
+.PHONY: default clean debug check clean_check
 
 default:
 	$(MAKE) -C src/ $@
@@ -12,5 +12,5 @@ check:
 clean:
 	$(MAKE) -C src/ $@
 
-clean_test:
+clean_check:
 	$(MAKE) -C src/ $@

@@ -14,7 +14,7 @@ test_objects = $(test_sources:.c=.o)
 test_bin = $(addprefix ${test_dir}, test)
 
 
-.PHONY: default all clean debug check clean_test
+.PHONY: default all clean debug check clean_check
 
 default: CFLAGS += -O2 -DNDEBUG
 default: all
@@ -46,7 +46,7 @@ $(addprefix ${test_dir}, %.o): $(addprefix ${test_dir}, %.c)
 	$(CC) $(CFLAGS) $< -c -o $@ $(LD_LIBS)
 
 clean:
-	-rm y.tab.* lex.yy.c *.o $(addprefix ${test_dir}, *.o)
+	-rm y.tab.* lex.yy.c *.o $(addprefix ${test_dir}, *.o test)
 
-clean_test:
+clean_check:
 	-rm $(addprefix ${test_dir}, *.o test) 

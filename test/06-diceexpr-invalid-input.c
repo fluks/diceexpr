@@ -128,6 +128,16 @@ START_TEST(syntax_error5) {
 }
 END_TEST
 
+START_TEST(overflow) {
+    const char OVERFLOW_INT_LEAST64_T[] = "9223372036854775808";
+    strcpy(expr, OVERFLOW_INT_LEAST64_T);
+    error = de_parse(expr, &value, &rolled_expr);
+
+    ck_assert_msg(error == DE_OVERFLOW,
+        "expr \"%s\" returns DE_OVERFLOW", expr);
+}
+END_TEST
+
 Suite*
 suite_diceexpr_invalid() {
     Suite *suite = suite_create("diceexpr_invalid");
@@ -146,6 +156,7 @@ suite_diceexpr_invalid() {
     tcase_add_test(tcase, syntax_error3);
     tcase_add_test(tcase, syntax_error4);
     tcase_add_test(tcase, syntax_error5);
+    tcase_add_test(tcase, overflow);
 
     return suite;
 }

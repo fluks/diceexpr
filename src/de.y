@@ -1,6 +1,7 @@
 /** Grammar for dice expression.
  * s      ::= expr
- * expr   ::= INTEGER | '-' expr | expr '-' expr | expr '+' expr | [INTEGER] 'd' INTEGER ignore
+ * expr   ::= INTEGER | ('-'|'+') expr | expr '-' expr | expr '+' expr |
+              [INTEGER] 'd' INTEGER ignore
  * ignore ::= ('<' | '>' [INTEGER])*
  */
 
@@ -55,7 +56,7 @@ static enum parse_error parse_error;
 %right '<' '>'
 
 %nonassoc IGNORE_EMPTY
-%nonassoc UMINUS
+%nonassoc UMINUS UPLUS
 
 %%
 
@@ -71,6 +72,7 @@ expr:
                                  PARSE_ERROR(DE_MEMORY);
                             }
     | '-' { if (str_append_char(rolled_expr, '-')) PARSE_ERROR(DE_MEMORY); } expr %prec UMINUS  { $$ = -$3; }
+    | '+' { if (str_append_char(rolled_expr, '+')) PARSE_ERROR(DE_MEMORY); } expr %prec UPLUS   { $$ = $3; }
     | expr '-' { if (str_append_char(rolled_expr, '-')) PARSE_ERROR(DE_MEMORY);  } expr         { $$ = $1 - $4; }
     | expr '+' { if (str_append_char(rolled_expr, '+')) PARSE_ERROR(DE_MEMORY); }  expr         { $$ = $1 + $4; }
     | maybe_int 'd' INTEGER ignore_list     {

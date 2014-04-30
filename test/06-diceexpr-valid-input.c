@@ -44,12 +44,21 @@ START_TEST(integers1) {
 }
 END_TEST
 
-START_TEST(integers2) {
+START_TEST(unary_minus) {
     strcpy(expr, "-1");
     de_parse(expr, &value, &rolled_expr);
 
     ck_assert_int_eq(value, -1);
     ck_assert_str_eq(expr, rolled_expr);
+}
+END_TEST
+
+START_TEST(unary_plus) {
+    strcpy(expr, "+1");
+    de_parse(expr, &value, &rolled_expr);
+
+    ck_assert_int_eq(value, 1);
+    ck_assert_str_eq("+1", rolled_expr);
 }
 END_TEST
 
@@ -145,6 +154,24 @@ START_TEST(multiple_plus_and_or_minus_sequence2) {
 }
 END_TEST
 
+START_TEST(multiple_plus_and_or_minus_sequence3) {
+    strcpy(expr, "++1");
+    de_parse(expr, &value, &rolled_expr);
+
+    ck_assert_int_eq(value, 1);
+    ck_assert_str_eq(expr, rolled_expr);
+}
+END_TEST
+
+START_TEST(multiple_plus_and_or_minus_sequence4) {
+    strcpy(expr, "1-+1");
+    de_parse(expr, &value, &rolled_expr);
+
+    ck_assert_int_eq(value, 0);
+    ck_assert_str_eq(expr, rolled_expr);
+}
+END_TEST
+
 START_TEST(dice1) {
     strcpy(expr, "d1");
     de_parse(expr, &value, &rolled_expr);
@@ -227,7 +254,8 @@ suite_diceexpr_valid() {
     tcase_add_checked_fixture(tcase, setup, teardown);
 
     tcase_add_test(tcase, integers1);
-    tcase_add_test(tcase, integers2);
+    tcase_add_test(tcase, unary_minus);
+    tcase_add_test(tcase, unary_plus);
     tcase_add_test(tcase, zero);
     tcase_add_test(tcase, max);
     tcase_add_test(tcase, min);
@@ -238,6 +266,8 @@ suite_diceexpr_valid() {
     tcase_add_test(tcase, subtract2);
     tcase_add_test(tcase, multiple_plus_and_or_minus_sequence1);
     tcase_add_test(tcase, multiple_plus_and_or_minus_sequence2);
+    tcase_add_test(tcase, multiple_plus_and_or_minus_sequence3);
+    tcase_add_test(tcase, multiple_plus_and_or_minus_sequence4);
     tcase_add_test(tcase, dice1);
     tcase_add_test(tcase, dice2);
     tcase_add_test(tcase, dice3);

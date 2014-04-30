@@ -6,8 +6,15 @@ CFLAGS += -Wall -Wextra -pedantic -std=c11 -g
 CFLAGS += -Wno-unused-function
 lib_dir = ../lib/
 lib = libdiceexpr.so
+lib_link = diceexpr
 
-.PHONY: default all clean debug
+test_dir = ../test/
+test_sources = $(wildcard $(addprefix ${test_dir}, *.c))
+test_objects = $(test_sources:.c=.o)
+test_bin = $(addprefix ${test_dir}, test)
+
+
+.PHONY: default all clean debug check clean_test
 
 default: CFLAGS += -O2 -DNDEBUG
 default: all
@@ -28,5 +35,18 @@ y.tab.c: de.y str.o
 lex.yy.c: de.l
 	lex $<
 
+check: CFLAGS = $(shell pkg-config --cflags check) -I. -L$(lib_dir) -O2 -g -Wall \
+	-Wextra -pedantic -std=c11
+check: LD_LIBS = $(shell pkg-config --libs check) -l$(basename ${lib_link})
+check: $(test_objects)
+	$(CC) $(CFLAGS) -o $(test_bin) $(test_objects) $(LD_LIBS)
+	$(test_bin)
+
+$(addprefix ${test_dir}, %.o): $(addprefix ${test_dir}, %.c)
+	$(CC) $(CFLAGS) $< -c -o $@ $(LD_LIBS)
+
 clean:
-	-rm y.tab.* lex.yy.c *.o
+	-rm y.tab.* lex.yy.c *.o $(addprefix ${test_dir}, *.o)
+
+clean_test:
+	-rm $(addprefix ${test_dir}, *.o test) 

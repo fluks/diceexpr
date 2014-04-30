@@ -36,7 +36,7 @@ str_new(const char *chars) {
     s->str[0] = '\0';
 
     if (chars != NULL)
-        strcpy(s->str, chars);
+        str_append_chars(s, chars);
 
     return s;
 }

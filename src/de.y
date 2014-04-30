@@ -169,15 +169,20 @@ roll(int_least64_t nrolls,
     if (ignore_small + ignore_large >= nrolls)
         return DE_IGNORE;
 
-    int_least64_t rolls[nrolls];
+    int_least64_t *rolls = malloc(nrolls * sizeof(*rolls));
+    if (rolls == NULL)
+        return DE_MEMORY;
 
     for (int_least64_t i = 0; i < nrolls; i++)
         rolls[i] = (int_least64_t) (rand() / (double) RAND_MAX * dice + 1);
 
     qsort(rolls, nrolls, sizeof(int_least64_t), sort_ascending);
 
-    if (str_append_char(rolled_expr, '(') != 0)
-        return DE_MEMORY;
+    int retval = 0;
+    if (str_append_char(rolled_expr, '(') != 0) {
+        retval = DE_MEMORY;
+        goto free;
+    }
 
     int_least64_t sum = 0;
     int_least64_t nth_included_roll = 0;
@@ -188,16 +193,24 @@ roll(int_least64_t nrolls,
         const char *format_with_plus_or_not =
             nth_included_roll > 0 && nth_included_roll < nrolls - ignore_large ?
                 "+%" PRIdLEAST64 : "%" PRIdLEAST64;
-        if (str_append_format(rolled_expr, format_with_plus_or_not, rolls[i]) != 0)
-            return DE_MEMORY;
+        if (str_append_format(rolled_expr, format_with_plus_or_not, rolls[i])
+            != 0) {
+            retval = DE_MEMORY;
+            goto free;
+        }
     }
 
-    if (str_append_char(rolled_expr, ')') != 0)
-        return DE_MEMORY;
+    if (str_append_char(rolled_expr, ')') != 0) {
+        retval = DE_MEMORY;
+        goto free;
+    }
 
     *dice_sum = sum;
 
-    return 0;
+    free:
+        free(rolls);
+
+    return retval;
 }
 
 static int

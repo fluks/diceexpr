@@ -2,11 +2,13 @@
 CFLAGS = -D_XOPEN_SOURCE
 # vasprintf()
 CFLAGS += -D_GNU_SOURCE
-CFLAGS += -Wall -Wextra -pedantic -std=c11 -g
+CFLAGS += -Wall -Wextra -pedantic -std=c99 -g
 CFLAGS += -Wno-unused-function
 lib_dir = ../lib/
 lib = libdiceexpr.so
 lib_link = diceexpr
+
+YACC_FLAGS = -d
 
 test_dir = ../test/
 test_sources = $(wildcard $(addprefix ${test_dir}, *.c))
@@ -30,13 +32,13 @@ str.o: str.c str.h
 	$(CC) $(CFLAGS) $< -c -o $@
 
 y.tab.c: de.y str.o
-	yacc -d $<
+	yacc $(YACC_FLAGS) $<
 
 lex.yy.c: de.l
 	lex $<
 
 check: CFLAGS = $(shell pkg-config --cflags check) -I. -L$(lib_dir) -O2 -g -Wall \
-	-Wextra -pedantic -std=c11
+	-Wextra -pedantic -std=c99
 check: LD_LIBS = $(shell pkg-config --libs check) -l$(basename ${lib_link})
 check: $(test_objects)
 	$(CC) $(CFLAGS) -o $(test_bin) $(test_objects) $(LD_LIBS)

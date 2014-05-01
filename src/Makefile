@@ -8,7 +8,7 @@ lib_dir = ../lib/
 lib = libdiceexpr.so
 lib_link = diceexpr
 
-YACC_FLAGS = -d
+BISON_FLAGS = -d
 
 test_dir = ../test/
 test_sources = $(wildcard $(addprefix ${test_dir}, *.c))
@@ -21,7 +21,7 @@ test_bin = $(addprefix ${test_dir}, test)
 default: CFLAGS += -O2 -DNDEBUG
 default: all
 
-all: str.o y.tab.c lex.yy.c
+all: str.o de.tab.c lex.yy.c
 	mkdir -p $(lib_dir)
 	$(CC) $(CFLAGS) $^ -shared -o $(addprefix ${lib_dir}, ${lib})
 
@@ -31,11 +31,11 @@ debug: all
 str.o: str.c str.h
 	$(CC) $(CFLAGS) $< -c -o $@
 
-y.tab.c: de.y str.o
-	yacc $(YACC_FLAGS) $<
+de.tab.c: de.y str.o
+	bison -d $<
 
 lex.yy.c: de.l
-	lex $<
+	flex $<
 
 check: CFLAGS = $(shell pkg-config --cflags check) -I. -L$(lib_dir) -O2 -g -Wall \
 	-Wextra -pedantic -std=c99
@@ -48,7 +48,7 @@ $(addprefix ${test_dir}, %.o): $(addprefix ${test_dir}, %.c)
 	$(CC) $(CFLAGS) $< -c -o $@ $(LD_LIBS)
 
 clean:
-	-rm y.tab.* lex.yy.c *.o $(addprefix ${test_dir}, *.o test)
+	-rm de.tab.* lex.yy.c *.o $(addprefix ${test_dir}, *.o test)
 
 clean_check:
 	-rm $(addprefix ${test_dir}, *.o test) 

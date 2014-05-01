@@ -6,3 +6,4 @@ src/*.o
 lib/
 test/*.o
 test/test
+src/de.tab.*

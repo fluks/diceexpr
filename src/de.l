@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <errno.h>
-#include "y.tab.h"
+#include "de.tab.h"
 int read_int();
 %}
 

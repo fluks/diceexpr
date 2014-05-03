@@ -42,7 +42,7 @@ check: CFLAGS = $(shell pkg-config --cflags check) -I. -L$(lib_dir) -O2 -g -Wall
 check: LD_LIBS = $(shell pkg-config --libs check) -l$(basename ${lib_link})
 check: $(test_objects)
 	$(CC) $(CFLAGS) -o $(test_bin) $(test_objects) $(LD_LIBS)
-	$(test_bin)
+	$(addprefix LD_LIBRARY_PATH=, ${lib_dir}) $(test_bin)
 
 $(addprefix ${test_dir}, %.o): $(addprefix ${test_dir}, %.c)
 	$(CC) $(CFLAGS) $< -c -o $@ $(LD_LIBS)

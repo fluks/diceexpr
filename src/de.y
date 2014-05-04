@@ -95,7 +95,6 @@ maybe_int:
 ignore_list:
     ignore
     | ignore_list ignore
-    // Should now be redundant.
     | %prec IGNORE_EMPTY
     ;
 

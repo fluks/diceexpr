@@ -16,6 +16,7 @@ main() {
 
     srunner_add_suite(sr, suite_diceexpr_valid());
     srunner_add_suite(sr, suite_diceexpr_invalid());
+    srunner_add_suite(sr, suite_diceexpr_overflow());
 
     srunner_run_all(sr, CK_NORMAL);
     int number_failed = srunner_ntests_failed(sr);

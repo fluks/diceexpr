@@ -2,17 +2,21 @@
 #include <stdlib.h>
 #include <time.h>
 #include <inttypes.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include "diceexpr.h"
 
 int main() {
     srand(time(NULL));
-    const size_t size = 100;
-    char buf[size];
     int_least64_t result;
     char *rolled_expr = NULL;
+    char *line;
 
-    while (fgets(buf, size - 1, stdin) != NULL) {
-        enum parse_error e = de_parse(buf, &result, &rolled_expr);
+    // Don't complete filepaths.
+    rl_bind_key('\t', NULL);
+
+    while ((line = readline("> ")) != NULL) {
+        enum parse_error e = de_parse(line, &result, &rolled_expr);
         if (e != 0) {
             switch (e) {
                 case DE_MEMORY:            puts("oom"); break;
@@ -24,11 +28,15 @@ int main() {
                 case DE_OVERFLOW:          puts("integer overflow"); break;
                 default:                   puts("unknown error");
             }
-            continue;
+            goto clean_readline;
         }
         printf("%s = %" PRIdLEAST64 "\n", rolled_expr, result);
 
+        add_history(line);
+
         free(rolled_expr);
         rolled_expr = NULL;
+        clean_readline:
+            free(line);
     }
 }

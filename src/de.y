@@ -219,6 +219,7 @@ de_parse(const char *expr, int_least64_t *value, char **rolled_expression) {
 
     end:
         delete_buffer();
+        yylex_destroy();
         str_free(rolled_expr);
         // Initialize all file globals for the next call.
         rolled_expr = NULL;

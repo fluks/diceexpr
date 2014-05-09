@@ -26,4 +26,7 @@ suite_diceexpr_valid();
 Suite*
 suite_diceexpr_invalid();
 
+Suite*
+suite_diceexpr_overflow();
+
 #endif // TEST_H

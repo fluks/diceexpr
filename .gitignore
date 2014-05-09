@@ -7,3 +7,4 @@ lib/
 test/*.o
 test/test
 src/de.tab.*
+example/example

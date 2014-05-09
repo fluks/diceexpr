@@ -1,7 +1,20 @@
 #ifndef DICEEXPR_H
     #define DICEEXPR_H
+
+/** @file
+ *
+ * @description A function for dice expressions. A dice expression consists of
+ * dice rolls, possibly ignoring some of those rolls and constant modifiers.
+ *
+ * Grammar for dice expression.
+ * s      ::= expr
+ * expr   ::= INTEGER | ('-'|'+') expr | expr '-' expr | expr '+' expr |
+              [INTEGER] ('d'|'D') INTEGER ignore
+ * ignore ::= ('<' | '>' [INTEGER])*
+ */
+
 #include <stdint.h>
-/** de_parse() return values on error.
+/** @enum parse_error de_parse() return values on error.
  */
 enum parse_error {
     DE_MEMORY = 1,

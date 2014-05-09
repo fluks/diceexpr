@@ -1,10 +1,3 @@
-/** Grammar for dice expression.
- * s      ::= expr
- * expr   ::= INTEGER | ('-'|'+') expr | expr '-' expr | expr '+' expr |
-              [INTEGER] 'd' INTEGER ignore
- * ignore ::= ('<' | '>' [INTEGER])*
- */
-
 %{
 #include <stdio.h>
 #include <stdlib.h>

@@ -15,8 +15,7 @@
 #include "str.h"
 #include "diceexpr.h"
 #include "numflow.h"
-// Call this on a parameter if compiler warns about unused parameter.
-#define UNUSED_PARAM(x) ((void) (x))
+
 int yylex();
 void yyerror(const char *s);
 // Set dice expression as input for lexer. Can't be NULL.
@@ -54,7 +53,7 @@ static enum parse_error parse_error;
 
 %%
 
-program:
+parse:
     expr { result = $1; }
     ;
 
@@ -319,6 +318,4 @@ sort_ascending(const void *a, const void *b) {
 
 // Empty, because on syntax error we don't want to print anything.
 void
-yyerror(const char *s) {
-    UNUSED_PARAM(s);
-}
+yyerror(const char *s) { }

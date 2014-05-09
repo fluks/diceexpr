@@ -3,8 +3,6 @@ CFLAGS = -D_XOPEN_SOURCE
 # vasprintf()
 CFLAGS += -D_GNU_SOURCE
 CFLAGS += -Wall -Wextra -pedantic -std=c99 -g -Wshadow
-# gcc complains about integer overflow in numflow.h, but that doesn't happen.
-CFLAGS += -Wno-overflow 
 lib_dir = ../lib/
 lib = libdiceexpr.so
 lib_link = diceexpr

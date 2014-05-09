@@ -3,7 +3,6 @@ CFLAGS = -D_XOPEN_SOURCE
 # vasprintf()
 CFLAGS += -D_GNU_SOURCE
 CFLAGS += -Wall -Wextra -pedantic -std=c99 -g -Wshadow
-CFLAGS += -Wno-unused-function
 # gcc complains about integer overflow in numflow.h, but that doesn't happen.
 CFLAGS += -Wno-overflow 
 lib_dir = ../lib/

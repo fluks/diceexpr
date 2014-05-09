@@ -10,21 +10,12 @@ int read_int();
 
 %%
 
-[0-9]       {
-                return read_int() != 0 ? OVERFLOW : INTEGER; 
-            }
-
-[1-9][0-9]+ {
-                return read_int() != 0 ? OVERFLOW : INTEGER; 
-            }
-
+[0-9]           return read_int() != 0 ? OVERFLOW : INTEGER; 
+[1-9][0-9]+     return read_int() != 0 ? OVERFLOW : INTEGER; 
 [-+d<>]         return *yytext;
-
 D               return 'd';
-
 [ \t\n]         ;
-
-.               { return INVALID_CHARACTER; }
+.               { return INVALID_CHARACTER;}
 
 %%
 

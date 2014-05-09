@@ -1,0 +1,16 @@
+Description
+
+A dice expression parser in C to use for rolling dices in RPGs etc.
+
+Here's a grammar for a dice expression.
+
+ s      ::= expr
+ expr   ::= INTEGER | ('-'|'+') expr | expr '-' expr | expr '+' expr |
+            [INTEGER] ('d'|'D') INTEGER ignore
+ ignore ::= ('<' | '>' [INTEGER])*
+
+Example usage
+
+ make
+ make example
+ LD_LIBRARY_PATH=lib example/example

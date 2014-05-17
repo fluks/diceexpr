@@ -1,4 +1,4 @@
-Description
+DESCRIPTION
 
 A dice expression parser in C to use for rolling dices in RPGs etc.
 
@@ -9,7 +9,14 @@ Here's a grammar for a dice expression.
             [INTEGER] ('d'|'D') INTEGER ignore
  ignore ::= ('<' | '>' [INTEGER])*
 
-Example usage
+Example expression:
+
+ 3d6< + 3d4>2 + d2 - 1
+
+Roll d6 three times, discard smallest value, plus roll d4 three times,
+discard two largest values, plus roll d2 oncei, minus 1.
+
+EXAMPLE PROGRAM
 
  make
  make example

@@ -14,7 +14,7 @@ Example expression:
  3d6< + 3d4>2 + d2 - 1
 
 Roll d6 three times, discard smallest value, plus roll d4 three times,
-discard two largest values, plus roll d2 oncei, minus 1.
+discard two largest values, plus roll d2 once, minus 1.
 
 EXAMPLE PROGRAM
 

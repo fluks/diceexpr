@@ -138,6 +138,18 @@ START_TEST(overflow) {
 }
 END_TEST
 
+START_TEST(bug_overflow1) {
+    /* Number of rolls is relevant, expression was generated randomly by a
+     * fuzzer. Expression was originally 999999919999910d100>3+2, but to make
+     * this test probably work also on a 64-bit processor, we use larger number
+     * of rolls. */
+    strcpy(expr, "99999991999991099999d100>3+2");
+    error = de_parse(expr, &value, &rolled_expr);
+
+    ck_assert_msg(error == DE_OVERFLOW, "expr \"%s\" overflows", expr);
+}
+END_TEST
+
 Suite*
 suite_diceexpr_invalid() {
     Suite *suite = suite_create("diceexpr_invalid");
@@ -157,6 +169,7 @@ suite_diceexpr_invalid() {
     tcase_add_test(tcase, syntax_error4);
     tcase_add_test(tcase, syntax_error5);
     tcase_add_test(tcase, overflow);
+    tcase_add_test(tcase, bug_overflow1);
 
     return suite;
 }

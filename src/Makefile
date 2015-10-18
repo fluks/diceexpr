@@ -2,7 +2,7 @@
 CFLAGS = -D_XOPEN_SOURCE
 # vasprintf()
 CFLAGS += -D_GNU_SOURCE
-CFLAGS += -Wall -Wextra -pedantic -std=c99 -g -Wshadow
+CFLAGS += -Wall -Wextra -pedantic -std=c99 -g -Wshadow -fPIC
 lib_dir = ../lib/
 lib = libdiceexpr.so
 lib_link = diceexpr

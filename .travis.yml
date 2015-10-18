@@ -1,0 +1,22 @@
+language: c
+compiler:
+    - gcc
+    - clang
+before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -yqq libreadline-dev
+    # Install newest check from source.
+    - wget -O check.tar.gz http://sourceforge.net/projects/check/files/latest/download?source=files
+    - tar xf check.tar.gz
+    - cd check*
+    - ./configure
+    - make
+    # Servant suite freezes.
+    #- make check
+    - sudo make install
+    - sudo ldconfig
+    - cd ..
+script:
+    - make
+    - make check
+    - make example
